@@ -22,9 +22,11 @@ dist/
 .vite/
 *.local
 
-# Data (large / licensed — keep out of git)
+# Data (large / licensed downloads — keep out of git), but DO track hand-crafted
+# dev fixtures (fixture_*.json) used by tests and the demo.
 server/data/synthea/*.json
 !server/data/synthea/.gitkeep
+!server/data/synthea/fixture_*.json
 server/data/guidelines/*.pdf
 
 # OS / IDE

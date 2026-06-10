@@ -1,0 +1,35 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:22222222-2222-2222-2222-222222222222",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "22222222-2222-2222-2222-222222222222",
+        "name": [{ "use": "official", "family": "James", "given": ["Lebron"] }],
+        "gender": "male",
+        "birthDate": "1991-11-02",
+        "address": [
+          { "line": ["77 Birch Lane"], "city": "Madison", "state": "WI", "postalCode": "53703" }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:bbbb2222-0000-0000-0000-000000000001",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bbbb2222-0000-0000-0000-000000000001",
+        "subject": { "reference": "urn:uuid:22222222-2222-2222-2222-222222222222" },
+        "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "resolved" }] },
+        "code": {
+          "coding": [
+            { "system": "http://snomed.info/sct", "code": "162864005", "display": "Body mass index 30+ - obesity (finding)" }
+          ],
+          "text": "Routine wellness — elevated BMI noted"
+        },
+        "onsetDateTime": "2023-05-01T09:00:00Z"
+      }
+    }
+  ]
+}

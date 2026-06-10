@@ -1,0 +1,51 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:11111111-1111-1111-1111-111111111111",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "11111111-1111-1111-1111-111111111111",
+        "name": [{ "use": "official", "family": "O'Neal", "given": ["Shaq"] }],
+        "gender": "male",
+        "birthDate": "1968-03-14",
+        "address": [
+          { "line": ["482 Oakwood Drive"], "city": "Springfield", "state": "IL", "postalCode": "62704" }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:aaaa1111-0000-0000-0000-000000000001",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "aaaa1111-0000-0000-0000-000000000001",
+        "subject": { "reference": "urn:uuid:11111111-1111-1111-1111-111111111111" },
+        "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active" }] },
+        "code": {
+          "coding": [
+            { "system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2 (disorder)" }
+          ],
+          "text": "Diabetes mellitus type 2 (disorder)"
+        },
+        "onsetDateTime": "2012-09-20T10:00:00Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:aaaa1111-0000-0000-0000-000000000002",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "aaaa1111-0000-0000-0000-000000000002",
+        "subject": { "reference": "urn:uuid:11111111-1111-1111-1111-111111111111" },
+        "clinicalStatus": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active" }] },
+        "code": {
+          "coding": [
+            { "system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertensive disorder, systemic arterial (disorder)" }
+          ],
+          "text": "Hypertension"
+        },
+        "onsetDateTime": "2014-02-11T10:00:00Z"
+      }
+    }
+  ]
+}
