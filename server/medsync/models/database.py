@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -92,3 +92,127 @@ class Condition(TimestampMixin, Base):
     has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
 
     patient: Mapped[Patient | None] = relationship(back_populates="conditions")
+
+
+# --------------------------------------------------------------------------- #
+# Increment 2: remaining core resource types + raw_resources
+# encounter_fhir_id is a SOFT reference (indexed string, no FK) so an
+# Observation referencing an encounter absent from the bundle never fails to
+# insert (CLAUDE.md flag-don't-reject policy).
+# --------------------------------------------------------------------------- #
+class Encounter(TimestampMixin, Base):
+    __tablename__ = "encounters"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    status: Mapped[str | None] = mapped_column(String(32))
+    encounter_class: Mapped[str | None] = mapped_column(String(32))
+    type_code: Mapped[str | None] = mapped_column(String(64))
+    type_display: Mapped[str | None] = mapped_column(String(512))
+    reason_code: Mapped[str | None] = mapped_column(String(64))
+    reason_display: Mapped[str | None] = mapped_column(String(512))
+    period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class Observation(TimestampMixin, Base):
+    __tablename__ = "observations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    encounter_fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    code: Mapped[str | None] = mapped_column(String(64))
+    system: Mapped[str | None] = mapped_column(String(256))
+    display: Mapped[str | None] = mapped_column(String(512))
+    value_number: Mapped[float | None] = mapped_column(Float)
+    value_unit: Mapped[str | None] = mapped_column(String(64))
+    value_string: Mapped[str | None] = mapped_column(String(512))
+    effective_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str | None] = mapped_column(String(32))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class MedicationRequest(TimestampMixin, Base):
+    __tablename__ = "medication_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    encounter_fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    code: Mapped[str | None] = mapped_column(String(64))
+    system: Mapped[str | None] = mapped_column(String(256))
+    display: Mapped[str | None] = mapped_column(String(512))
+    status: Mapped[str | None] = mapped_column(String(32))
+    authored_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class Procedure(TimestampMixin, Base):
+    __tablename__ = "procedures"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    encounter_fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    code: Mapped[str | None] = mapped_column(String(64))
+    system: Mapped[str | None] = mapped_column(String(256))
+    display: Mapped[str | None] = mapped_column(String(512))
+    status: Mapped[str | None] = mapped_column(String(32))
+    performed_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class DiagnosticReport(TimestampMixin, Base):
+    __tablename__ = "diagnostic_reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    encounter_fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    code: Mapped[str | None] = mapped_column(String(64))
+    system: Mapped[str | None] = mapped_column(String(256))
+    display: Mapped[str | None] = mapped_column(String(512))
+    status: Mapped[str | None] = mapped_column(String(32))
+    effective_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class AllergyIntolerance(TimestampMixin, Base):
+    __tablename__ = "allergy_intolerances"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(
+        ForeignKey("patients.fhir_id", ondelete="CASCADE"), index=True
+    )
+    code: Mapped[str | None] = mapped_column(String(64))
+    system: Mapped[str | None] = mapped_column(String(256))
+    display: Mapped[str | None] = mapped_column(String(512))
+    clinical_status: Mapped[str | None] = mapped_column(String(64))
+    criticality: Mapped[str | None] = mapped_column(String(32))
+    has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+
+class RawResource(TimestampMixin, Base):
+    """Deferred FHIR resource types stored verbatim for Phase-4 promotion."""
+
+    __tablename__ = "raw_resources"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    resource_type: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    patient_fhir_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)

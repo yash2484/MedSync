@@ -1,0 +1,158 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:33333333-3333-3333-3333-333333333333",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "33333333-3333-3333-3333-333333333333",
+        "name": [{ "use": "official", "family": "Bryant", "given": ["Kobe"] }],
+        "gender": "male",
+        "birthDate": "1978-08-23",
+        "address": [{ "line": ["24 Mamba Court"], "city": "Philadelphia", "state": "PA", "postalCode": "19103" }]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:enc-3333",
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-3333",
+        "status": "finished",
+        "class": { "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "EMER", "display": "emergency" },
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "reasonCode": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "29857009", "display": "Chest pain" }] }],
+        "period": { "start": "2023-11-01T08:00:00Z", "end": "2023-11-01T12:00:00Z" }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:cond-3333",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "cond-3333",
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "encounter": { "reference": "urn:uuid:enc-3333" },
+        "clinicalStatus": { "coding": [{ "code": "active" }] },
+        "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "53741008", "display": "Coronary arteriosclerosis (disorder)" }] }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-hr-3333",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-hr-3333",
+        "status": "final",
+        "code": { "coding": [{ "system": "http://loinc.org", "code": "8867-4", "display": "Heart rate" }] },
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "encounter": { "reference": "urn:uuid:enc-3333" },
+        "valueQuantity": { "value": 112, "unit": "beats/min", "system": "http://unitsofmeasure.org", "code": "/min" },
+        "effectiveDateTime": "2023-11-01T08:15:00Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:med-3333",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "med-3333",
+        "status": "active",
+        "intent": "order",
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "encounter": { "reference": "urn:uuid:enc-3333" },
+        "medicationCodeableConcept": { "coding": [{ "system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "243670", "display": "Aspirin 81 MG Oral Tablet" }] },
+        "authoredOn": "2023-11-01T09:00:00Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:proc-3333",
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "proc-3333",
+        "status": "completed",
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "encounter": { "reference": "urn:uuid:enc-3333" },
+        "code": { "coding": [{ "system": "http://snomed.info/sct", "code": "29303009", "display": "Electrocardiographic procedure" }] },
+        "performedDateTime": "2023-11-01T08:30:00Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:dr-3333",
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "dr-3333",
+        "status": "final",
+        "code": { "coding": [{ "system": "http://loinc.org", "code": "89247-1", "display": "Troponin panel" }] },
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "encounter": { "reference": "urn:uuid:enc-3333" },
+        "effectiveDateTime": "2023-11-01T09:30:00Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:alg-3333",
+      "resource": {
+        "resourceType": "AllergyIntolerance",
+        "id": "alg-3333",
+        "patient": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "clinicalStatus": { "coding": [{ "code": "active" }] },
+        "criticality": "high",
+        "code": { "coding": [{ "system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "Penicillin" }] }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:imm-3333",
+      "resource": {
+        "resourceType": "Immunization",
+        "id": "imm-3333",
+        "status": "completed",
+        "vaccineCode": { "text": "Influenza, seasonal" },
+        "patient": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "occurrenceDateTime": "2023-10-01"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:cp-3333",
+      "resource": {
+        "resourceType": "CarePlan",
+        "id": "cp-3333",
+        "status": "active",
+        "intent": "plan",
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ct-3333",
+      "resource": {
+        "resourceType": "CareTeam",
+        "id": "ct-3333",
+        "status": "active",
+        "subject": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:claim-3333",
+      "resource": {
+        "resourceType": "Claim",
+        "id": "claim-3333",
+        "status": "active",
+        "use": "claim",
+        "patient": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:dev-3333",
+      "resource": {
+        "resourceType": "Device",
+        "id": "dev-3333",
+        "patient": { "reference": "urn:uuid:33333333-3333-3333-3333-333333333333" },
+        "deviceName": [{ "name": "Cardiac monitor", "type": "user-friendly-name" }]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:org-3333",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "org-3333",
+        "name": "Philadelphia General Hospital"
+      }
+    }
+  ]
+}
