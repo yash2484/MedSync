@@ -17,6 +17,12 @@ class ConditionOut(BaseModel):
     clinical_status: str | None = None
     onset_date: date | None = None
     has_incomplete_data: bool
+    # Stage 2 normalization output
+    snomed_code: str | None = None
+    icd10_code: str | None = None
+    mapping_confidence: float | None = None
+    normalized: bool = False
+    normalization_failed: bool = False
 
 
 class PatientOut(BaseModel):
