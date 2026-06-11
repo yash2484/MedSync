@@ -12,6 +12,12 @@ build:         ## Rebuild images
 logs:          ## Tail api + worker logs
 	docker compose logs -f api worker
 
+reload:        ## Fast restart after code changes (no rebuild; source is bind-mounted)
+	docker compose restart api worker
+
+ps:            ## Show service status
+	docker compose ps
+
 migrate:       ## Apply DB migrations
 	docker compose exec api uv run alembic upgrade head
 

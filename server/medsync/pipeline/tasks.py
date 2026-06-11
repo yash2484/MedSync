@@ -13,12 +13,15 @@ task run, which is safe under Celery's prefork pool.
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 from dataclasses import asdict
 
+from sqlalchemy import pool
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from medsync.celery_app import celery
-from medsync.db.session import async_session_factory
+from medsync.config import settings
 from medsync.models.database import (
     AllergyIntolerance,
     Condition,
@@ -33,6 +36,24 @@ from medsync.models.database import (
 )
 from medsync.pipeline.parser import ParseResult, parse_bundle
 from medsync.pipeline.status import publish_status
+
+
+@asynccontextmanager
+async def _task_session():
+    """A DB session whose engine lives and dies inside the current event loop.
+
+    Celery runs each task via a fresh asyncio.run() loop. A module-level pooled
+    engine binds connections to the first loop, so later tasks hit
+    "Future attached to a different loop". A per-task NullPool engine, disposed
+    before the loop closes, avoids any cross-loop connection reuse.
+    """
+    engine = create_async_engine(settings.database_url, poolclass=pool.NullPool)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with factory() as session:
+            yield session
+    finally:
+        await engine.dispose()
 
 
 async def _upsert(session, model, records, conflict: str = "fhir_id") -> None:
@@ -60,7 +81,7 @@ async def _persist(session, result: ParseResult) -> None:
 
 
 async def _run_parse(run_id: int) -> int:
-    async with async_session_factory() as session:
+    async with _task_session() as session:
         run = await session.get(PipelineRun, run_id)
         if run is None:
             raise ValueError(f"pipeline_run {run_id} not found")
