@@ -34,6 +34,7 @@ from medsync.models.database import (
     Procedure,
     RawResource,
 )
+from medsync.pipeline.normalizer import normalize_records
 from medsync.pipeline.parser import ParseResult, parse_bundle
 from medsync.pipeline.status import publish_status
 
@@ -98,7 +99,7 @@ async def _run_parse(run_id: int) -> int:
             run.record_count = result.record_count
             run.error_count = result.error_count
             run.error_detail = {"parse_errors": result.errors, "skipped": result.skipped}
-            run.status = "completed"  # spine: chain ends after parse until Inc 3+
+            run.status = "running"  # normalize stage follows in the chain
             run.current_stage = "parse"
             await session.commit()
             publish_status(
@@ -117,6 +118,42 @@ async def _run_parse(run_id: int) -> int:
     return run_id
 
 
+async def _run_normalize(run_id: int) -> int:
+    async with _task_session() as session:
+        run = await session.get(PipelineRun, run_id)
+        if run is None:
+            raise ValueError(f"pipeline_run {run_id} not found")
+
+        run.current_stage = "normalize"
+        await session.commit()
+        publish_status(run_id, "normalize", "running")
+
+        try:
+            stats = await normalize_records(session)
+            detail = dict(run.error_detail or {})
+            detail["normalize"] = stats
+            run.error_detail = detail
+            run.status = "completed"  # final stage until dedup/enrich (Inc 4)
+            run.current_stage = "normalize"
+            await session.commit()
+            publish_status(run_id, "normalize", "completed", **stats)
+        except Exception as exc:
+            await session.rollback()
+            run = await session.get(PipelineRun, run_id)
+            run.status = "failed"
+            run.error_detail = {"stage": "normalize", "error": str(exc)}
+            await session.commit()
+            publish_status(run_id, "normalize", "failed", error=str(exc))
+            raise
+
+    return run_id
+
+
 @celery.task(name="pipeline.parse")
 def parse_stage(run_id: int) -> int:
     return asyncio.run(_run_parse(run_id))
+
+
+@celery.task(name="pipeline.normalize")
+def normalize_stage(run_id: int) -> int:
+    return asyncio.run(_run_normalize(run_id))

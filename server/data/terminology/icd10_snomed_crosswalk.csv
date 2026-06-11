@@ -1,0 +1,50 @@
+snomed_code,snomed_display,icd10_code,icd10_display,mapping_confidence,mapping_source
+44054006,Diabetes mellitus type 2 (disorder),E11.9,Type 2 diabetes mellitus without complications,0.95,curated
+15777000,Prediabetes (finding),R73.03,Prediabetes,0.90,curated
+80394007,Hyperglycemia (disorder),R73.9,Hyperglycemia unspecified,0.85,curated
+59621000,Essential hypertension (disorder),I10,Essential (primary) hypertension,0.98,curated
+38341003,Hypertensive disorder systemic arterial (disorder),I10,Essential (primary) hypertension,0.90,curated
+55822004,Hyperlipidemia (disorder),E78.5,Hyperlipidemia unspecified,0.95,curated
+267432004,Pure hypercholesterolemia (disorder),E78.00,Pure hypercholesterolemia unspecified,0.90,curated
+53741008,Coronary arteriosclerosis (disorder),I25.10,Atherosclerotic heart disease of native coronary artery without angina pectoris,0.90,curated
+22298006,Myocardial infarction (disorder),I21.9,Acute myocardial infarction unspecified,0.85,curated
+399211009,History of myocardial infarction (situation),I25.2,Old myocardial infarction,0.85,curated
+84114007,Heart failure (disorder),I50.9,Heart failure unspecified,0.95,curated
+88805009,Chronic congestive heart failure (disorder),I50.9,Heart failure unspecified,0.90,curated
+49436004,Atrial fibrillation (disorder),I48.91,Unspecified atrial fibrillation,0.95,curated
+230690007,Cerebrovascular accident (disorder),I63.9,Cerebral infarction unspecified,0.88,curated
+195967001,Asthma (disorder),J45.909,Unspecified asthma uncomplicated,0.95,curated
+233678006,Childhood asthma (disorder),J45.909,Unspecified asthma uncomplicated,0.85,curated
+13645005,Chronic obstructive lung disease (disorder),J44.9,Chronic obstructive pulmonary disease unspecified,0.95,curated
+87433001,Pulmonary emphysema (disorder),J43.9,Emphysema unspecified,0.90,curated
+233604007,Pneumonia (disorder),J18.9,Pneumonia unspecified organism,0.95,curated
+10509002,Acute bronchitis (disorder),J20.9,Acute bronchitis unspecified,0.95,curated
+195662009,Acute viral pharyngitis (disorder),J02.9,Acute pharyngitis unspecified,0.90,curated
+43878008,Streptococcal sore throat (disorder),J02.0,Streptococcal pharyngitis,0.95,curated
+444814009,Viral sinusitis (disorder),J01.90,Acute sinusitis unspecified,0.85,curated
+40055000,Chronic sinusitis (disorder),J32.9,Chronic sinusitis unspecified,0.90,curated
+65363002,Otitis media (disorder),H66.90,Otitis media unspecified ear,0.90,curated
+73430006,Sleep apnea (disorder),G47.30,Sleep apnea unspecified,0.90,curated
+162864005,Body mass index 30+ - obesity (finding),E66.9,Obesity unspecified,0.90,curated
+408512008,Body mass index 40+ - severely obese (finding),E66.01,Morbid (severe) obesity due to excess calories,0.85,curated
+271737000,Anemia (disorder),D64.9,Anemia unspecified,0.95,curated
+197480006,Anxiety disorder (disorder),F41.9,Anxiety disorder unspecified,0.90,curated
+370143000,Major depressive disorder (disorder),F32.9,Major depressive disorder single episode unspecified,0.90,curated
+35489007,Depressive disorder (disorder),F32.9,Major depressive disorder single episode unspecified,0.85,curated
+431855005,Chronic kidney disease stage 1 (disorder),N18.1,Chronic kidney disease stage 1,0.95,curated
+433144002,Chronic kidney disease stage 3 (disorder),N18.30,Chronic kidney disease stage 3 unspecified,0.90,curated
+431857002,Chronic kidney disease stage 4 (disorder),N18.4,Chronic kidney disease stage 4 (severe),0.95,curated
+46177005,End-stage renal disease (disorder),N18.6,End stage renal disease,0.95,curated
+127013003,Diabetic renal disease (disorder),E11.22,Type 2 diabetes mellitus with diabetic chronic kidney disease,0.80,curated
+368581000119106,Neuropathy due to type 2 diabetes mellitus (disorder),E11.40,Type 2 diabetes mellitus with diabetic neuropathy unspecified,0.80,curated
+422034002,Diabetic retinopathy associated with type 2 diabetes mellitus (disorder),E11.319,Type 2 diabetes mellitus with unspecified diabetic retinopathy,0.80,curated
+90781000119102,Microalbuminuria due to type 2 diabetes mellitus (disorder),E11.29,Type 2 diabetes mellitus with other diabetic kidney complication,0.75,curated
+64859006,Osteoporosis (disorder),M81.0,Age-related osteoporosis without current pathological fracture,0.90,curated
+396275006,Osteoarthritis (disorder),M19.90,Unspecified osteoarthritis unspecified site,0.90,curated
+69896004,Rheumatoid arthritis (disorder),M06.9,Rheumatoid arthritis unspecified,0.90,curated
+235595009,Gastroesophageal reflux disease (disorder),K21.9,Gastro-esophageal reflux disease without esophagitis,0.90,curated
+40930008,Hypothyroidism (disorder),E03.9,Hypothyroidism unspecified,0.95,curated
+24079001,Atopic dermatitis (disorder),L20.9,Atopic dermatitis unspecified,0.90,curated
+239872002,Osteoarthritis of hip (disorder),M16.9,Osteoarthritis of hip unspecified,0.88,curated
+239873007,Osteoarthritis of knee (disorder),M17.9,Osteoarthritis of knee unspecified,0.88,curated
+156073000,Morbid obesity (disorder),E66.01,Morbid (severe) obesity due to excess calories,0.85,curated

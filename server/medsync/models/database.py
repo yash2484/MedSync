@@ -91,6 +91,14 @@ class Condition(TimestampMixin, Base):
 
     has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
 
+    # Stage 2 normalization (Increment 3): canonical cross-terminology codes.
+    snomed_code: Mapped[str | None] = mapped_column(String(64))
+    icd10_code: Mapped[str | None] = mapped_column(String(64))
+    mapping_confidence: Mapped[float | None] = mapped_column(Float)
+    mapping_source: Mapped[str | None] = mapped_column(String(64))
+    normalized: Mapped[bool] = mapped_column(default=False, nullable=False)
+    normalization_failed: Mapped[bool] = mapped_column(default=False, nullable=False)
+
     patient: Mapped[Patient | None] = relationship(back_populates="conditions")
 
 
@@ -137,6 +145,14 @@ class Observation(TimestampMixin, Base):
     effective_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str | None] = mapped_column(String(32))
     has_incomplete_data: Mapped[bool] = mapped_column(default=False, nullable=False)
+
+    # Stage 2 normalization (Increment 3): LOINC standardization + SI value.
+    loinc_code: Mapped[str | None] = mapped_column(String(32), index=True)
+    canonical_display: Mapped[str | None] = mapped_column(String(512))
+    value_canonical: Mapped[float | None] = mapped_column(Float)
+    value_canonical_unit: Mapped[str | None] = mapped_column(String(64))
+    normalized: Mapped[bool] = mapped_column(default=False, nullable=False)
+    normalization_failed: Mapped[bool] = mapped_column(default=False, nullable=False)
 
 
 class MedicationRequest(TimestampMixin, Base):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import redis.asyncio as aioredis
+from celery import chain
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +13,7 @@ from medsync.config import settings
 from medsync.db.session import get_session
 from medsync.models.database import PipelineRun
 from medsync.models.schemas import BundleUploadResponse, PipelineRunOut
-from medsync.pipeline.tasks import parse_stage
+from medsync.pipeline.tasks import normalize_stage, parse_stage
 
 router = APIRouter(prefix="/api/v1/bundles", tags=["bundles"])
 
@@ -37,7 +38,8 @@ async def upload_bundle(
     await session.commit()
     await session.refresh(run)
 
-    parse_stage.delay(run.id)
+    # Pipeline chain: parse -> normalize (dedup + enrich appended in Inc 4).
+    chain(parse_stage.s(run.id), normalize_stage.s()).apply_async()
     return BundleUploadResponse(pipeline_run_id=run.id, status=run.status)
 
 

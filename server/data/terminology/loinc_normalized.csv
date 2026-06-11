@@ -1,0 +1,28 @@
+loinc_code,long_common_name,standard_unit,category
+8867-4,Heart rate,/min,vital
+8480-6,Systolic blood pressure,mm[Hg],vital
+8462-4,Diastolic blood pressure,mm[Hg],vital
+8310-5,Body temperature,Cel,vital
+9279-1,Respiratory rate,/min,vital
+2708-6,Oxygen saturation in Arterial blood,%,vital
+59408-5,Oxygen saturation in Arterial blood by Pulse oximetry,%,vital
+8302-2,Body height,cm,vital
+29463-7,Body weight,kg,vital
+39156-5,Body mass index (BMI),kg/m2,vital
+2339-0,Glucose Mass/volume in Blood,mg/dL,lab
+2345-7,Glucose Mass/volume in Serum or Plasma,mg/dL,lab
+4548-4,Hemoglobin A1c/Hemoglobin.total in Blood,%,lab
+2093-3,Cholesterol Mass/volume in Serum or Plasma,mg/dL,lab
+2085-9,Cholesterol in HDL Mass/volume in Serum or Plasma,mg/dL,lab
+2089-1,Cholesterol in LDL Mass/volume in Serum or Plasma,mg/dL,lab
+13457-7,Cholesterol in LDL Mass/volume in Serum or Plasma by calculation,mg/dL,lab
+2571-8,Triglyceride Mass/volume in Serum or Plasma,mg/dL,lab
+718-7,Hemoglobin Mass/volume in Blood,g/dL,lab
+4544-3,Hematocrit Volume Fraction of Blood,%,lab
+6690-2,Leukocytes Number/volume in Blood,10*3/uL,lab
+777-3,Platelets Number/volume in Blood,10*3/uL,lab
+2160-0,Creatinine Mass/volume in Serum or Plasma,mg/dL,lab
+3094-0,Urea nitrogen Mass/volume in Serum or Plasma,mg/dL,lab
+33914-3,Glomerular filtration rate predicted,mL/min/1.73m2,lab
+2947-0,Sodium Moles/volume in Blood,mmol/L,lab
+6298-4,Potassium Moles/volume in Blood,mmol/L,lab
