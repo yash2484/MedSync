@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from medsync.db.session import get_session
-from medsync.models.database import Patient
-from medsync.models.schemas import PatientDetail, PatientOut
+from medsync.models.database import Encounter, Patient
+from medsync.models.schemas import PatientDetail, PatientOut, TimelineEntry
 
 router = APIRouter(prefix="/api/v1/patients", tags=["patients"])
 
@@ -43,3 +43,24 @@ async def get_patient(
     if patient is None:
         raise HTTPException(status_code=404, detail="patient not found")
     return patient
+
+
+@router.get("/{patient_id}/timeline", response_model=list[TimelineEntry])
+async def patient_timeline(patient_id: int, session: AsyncSession = Depends(get_session)):
+    patient = await session.get(Patient, patient_id)
+    if patient is None or patient.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="patient not found")
+    rows = (
+        await session.execute(
+            select(Encounter)
+            .where(Encounter.patient_fhir_id == patient.fhir_id)
+            .order_by(Encounter.period_start)
+        )
+    ).scalars().all()
+    return [
+        TimelineEntry(
+            encounter_fhir_id=e.fhir_id, encounter_class=e.encounter_class,
+            reason_display=e.reason_display, period_start=e.period_start,
+        )
+        for e in rows
+    ]

@@ -41,10 +41,19 @@ class PatientOut(BaseModel):
     match_zone: str | None = None
 
 
+class TimelineEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    encounter_fhir_id: str
+    encounter_class: str | None = None
+    reason_display: str | None = None
+    period_start: datetime | None = None
+
+
 class PatientDetail(PatientOut):
     address_line: str | None = None
     postal_code: str | None = None
     conditions: list[ConditionOut] = []
+    summary: dict | None = None
 
 
 class PipelineRunOut(BaseModel):
