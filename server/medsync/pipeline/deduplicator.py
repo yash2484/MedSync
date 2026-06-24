@@ -110,3 +110,80 @@ def assign_clusters(fhir_ids: list[str], match_pairs: list[tuple[str, str]]) -> 
         if x in parent and y in parent:
             union(x, y)
     return {fid: find(fid) for fid in fhir_ids}
+
+
+from sqlalchemy import select  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
+
+from medsync.config import settings  # noqa: E402
+from medsync.models.database import Patient, PatientLink  # noqa: E402
+
+
+def build_blocks(patients: list[PatientFields]) -> dict[str, list[PatientFields]]:
+    blocks: dict[str, list[PatientFields]] = {}
+    for p in patients:
+        year = p.birth_date.year if p.birth_date else None
+        key = soundex_block_key(p.last_name, year)
+        blocks.setdefault(key, []).append(p)
+    return blocks
+
+
+def _to_fields(p: Patient) -> PatientFields:
+    return PatientFields(
+        fhir_id=p.fhir_id, last_name=p.family_name, given_name=p.given_name,
+        birth_date=p.birth_date, gender=p.gender, address_line=p.address_line,
+        postal_code=p.postal_code,
+    )
+
+
+async def deduplicate_records(session: AsyncSession) -> dict:
+    patients = (
+        await session.execute(select(Patient).where(Patient.deleted_at.is_(None)))
+    ).scalars().all()
+    fields = [_to_fields(p) for p in patients]
+    ids = [f.fhir_id for f in fields]
+
+    match_pairs: list[tuple[str, str]] = []
+    links: list[tuple[str, str, float, str]] = []
+    compared = 0
+    for block in build_blocks(fields).values():
+        for i in range(len(block)):
+            for j in range(i + 1, len(block)):
+                compared += 1
+                score = score_pair(block[i], block[j], settings.dedup_name_similarity_cutoff)
+                zone = classify(score, settings.dedup_upper_threshold, settings.dedup_lower_threshold)
+                if zone == "match":
+                    match_pairs.append((block[i].fhir_id, block[j].fhir_id))
+                    links.append((block[i].fhir_id, block[j].fhir_id, score, zone))
+                elif zone == "possible":
+                    links.append((block[i].fhir_id, block[j].fhir_id, score, zone))
+
+    clusters = assign_clusters(ids, match_pairs)
+    matched_ids = {x for pair in match_pairs for x in pair}
+    possible_ids = {x for a, b, s, z in links if z == "possible" for x in (a, b)}
+
+    for p in patients:
+        p.cluster_id = clusters.get(p.fhir_id, p.fhir_id)
+        if p.fhir_id in matched_ids:
+            p.match_zone = "match"
+        elif p.fhir_id in possible_ids:
+            p.match_zone = "possible"
+        else:
+            p.match_zone = "non-match"
+
+    # Rewrite this run's link audit: clear and re-insert (idempotent).
+    existing = (await session.execute(select(PatientLink))).scalars().all()
+    for link in existing:
+        await session.delete(link)
+    for a, b, s, z in links:
+        session.add(PatientLink(patient_a_fhir_id=a, patient_b_fhir_id=b, score=s, match_zone=z))
+
+    # Invariant (CLAUDE.md §9.2): no patient in two distinct clusters.
+    assert len(set(clusters.values())) <= len(ids)
+    await session.commit()
+    return {
+        "clusters": len(set(clusters.values())),
+        "matches": len(match_pairs),
+        "possible": len([z for *_, z in links if z == "possible"]),
+        "compared": compared,
+    }

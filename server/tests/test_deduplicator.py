@@ -1,5 +1,15 @@
+from datetime import date
+
 from medsync.pipeline.deduplicator import (
-    soundex_block_key, jaro_winkler, token_overlap, exact,
+    PatientFields,
+    assign_clusters,
+    build_blocks,
+    classify,
+    exact,
+    jaro_winkler,
+    score_pair,
+    soundex_block_key,
+    token_overlap,
 )
 
 
@@ -31,11 +41,6 @@ def test_exact_match():
     assert exact(None, None) == 0.0  # unknown != agreement
 
 
-from datetime import date
-
-from medsync.pipeline.deduplicator import PatientFields, classify, score_pair
-
-
 def _shaq(fhir_id="a", last="O'Neal", given="Shaq"):
     return PatientFields(fhir_id, last, given, date(1968, 3, 14), "male",
                          "482 Oakwood Drive", "62704")
@@ -63,9 +68,6 @@ def test_classify_zones():
     assert classify(-1.0, upper=6.0, lower=0.0) == "non-match"
 
 
-from medsync.pipeline.deduplicator import assign_clusters
-
-
 def test_assign_clusters_unions_match_pairs():
     ids = ["a", "b", "c", "d"]
     clusters = assign_clusters(ids, [("a", "b"), ("b", "c")])
@@ -76,3 +78,13 @@ def test_assign_clusters_unions_match_pairs():
 def test_assign_clusters_deterministic_min_id():
     clusters = assign_clusters(["b", "a"], [("a", "b")])
     assert clusters["a"] == clusters["b"] == "a"  # min id is the cluster id
+
+
+def test_build_blocks_groups_by_soundex_and_year():
+    a = PatientFields("a", "O'Neal", "Shaq", date(1968, 3, 14), "male", "x", "1")
+    b = PatientFields("b", "Oneal", "Shaquille", date(1968, 7, 1), "male", "x", "1")
+    c = PatientFields("c", "Bryant", "Kobe", date(1978, 8, 23), "male", "y", "2")
+    blocks = build_blocks([a, b, c])
+    # a and b share Soundex(last)+birth_year -> same block; c separate
+    key_ab = next(k for k, v in blocks.items() if any(p.fhir_id == "a" for p in v))
+    assert {p.fhir_id for p in blocks[key_ab]} == {"a", "b"}
