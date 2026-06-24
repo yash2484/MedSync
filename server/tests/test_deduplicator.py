@@ -29,3 +29,35 @@ def test_exact_match():
     assert exact("M", "M") == 1.0
     assert exact("M", "F") == 0.0
     assert exact(None, None) == 0.0  # unknown != agreement
+
+
+from datetime import date
+
+from medsync.pipeline.deduplicator import PatientFields, classify, score_pair
+
+
+def _shaq(fhir_id="a", last="O'Neal", given="Shaq"):
+    return PatientFields(fhir_id, last, given, date(1968, 3, 14), "male",
+                         "482 Oakwood Drive", "62704")
+
+
+def test_score_pair_identical_is_high():
+    assert score_pair(_shaq("a"), _shaq("b")) > 6.0
+
+
+def test_score_pair_name_variation_still_positive():
+    # Same DOB/gender/address, given name typo -> should still score well above 0
+    s = score_pair(_shaq("a", given="Shaq"), _shaq("b", given="Shaquille"))
+    assert s > 0.0
+
+
+def test_score_pair_different_people_is_low():
+    kobe = PatientFields("c", "Bryant", "Kobe", date(1978, 8, 23), "male",
+                         "8 Mamba Ln", "90001")
+    assert score_pair(_shaq("a"), kobe) < 0.0
+
+
+def test_classify_zones():
+    assert classify(7.0, upper=6.0, lower=0.0) == "match"
+    assert classify(3.0, upper=6.0, lower=0.0) == "possible"
+    assert classify(-1.0, upper=6.0, lower=0.0) == "non-match"
