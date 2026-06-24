@@ -13,7 +13,7 @@ from medsync.config import settings
 from medsync.db.session import get_session
 from medsync.models.database import PipelineRun
 from medsync.models.schemas import BundleUploadResponse, PipelineRunOut
-from medsync.pipeline.tasks import normalize_stage, parse_stage
+from medsync.pipeline.tasks import deduplicate_stage, enrich_stage, normalize_stage, parse_stage
 
 router = APIRouter(prefix="/api/v1/bundles", tags=["bundles"])
 
@@ -38,8 +38,11 @@ async def upload_bundle(
     await session.commit()
     await session.refresh(run)
 
-    # Pipeline chain: parse -> normalize (dedup + enrich appended in Inc 4).
-    chain(parse_stage.s(run.id), normalize_stage.s()).apply_async()
+    # Pipeline chain: parse -> normalize -> deduplicate -> enrich.
+    chain(
+        parse_stage.s(run.id), normalize_stage.s(),
+        deduplicate_stage.s(), enrich_stage.s(),
+    ).apply_async()
     return BundleUploadResponse(pipeline_run_id=run.id, status=run.status)
 
 
