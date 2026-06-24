@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     # Embeddings provider for Phase 2 RAG (configurable now per CLAUDE.md §8)
     embedding_provider: Literal["local", "openai"] = "local"
 
+    # Deduplication thresholds (Fellegi-Sunter, Increment 4)
+    dedup_upper_threshold: float = 6.0
+    dedup_lower_threshold: float = 0.0
+    dedup_name_similarity_cutoff: float = 0.85
+
 
 @lru_cache
 def get_settings() -> Settings:

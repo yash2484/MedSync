@@ -34,6 +34,8 @@ from medsync.models.database import (
     Procedure,
     RawResource,
 )
+from medsync.pipeline.deduplicator import deduplicate_records
+from medsync.pipeline.enricher import enrich_records
 from medsync.pipeline.normalizer import normalize_records
 from medsync.pipeline.parser import ParseResult, parse_bundle
 from medsync.pipeline.status import publish_status
@@ -133,7 +135,7 @@ async def _run_normalize(run_id: int) -> int:
             detail = dict(run.error_detail or {})
             detail["normalize"] = stats
             run.error_detail = detail
-            run.status = "completed"  # final stage until dedup/enrich (Inc 4)
+            run.status = "running"  # deduplicate stage follows in the chain
             run.current_stage = "normalize"
             await session.commit()
             publish_status(run_id, "normalize", "completed", **stats)
@@ -149,6 +151,58 @@ async def _run_normalize(run_id: int) -> int:
     return run_id
 
 
+async def _run_deduplicate(run_id: int) -> int:
+    async with _task_session() as session:
+        run = await session.get(PipelineRun, run_id)
+        run.current_stage = "deduplicate"
+        await session.commit()
+        publish_status(run_id, "deduplicate", "running")
+        try:
+            stats = await deduplicate_records(session)
+            detail = dict(run.error_detail or {})
+            detail["deduplicate"] = stats
+            run.error_detail = detail
+            run.status = "running"
+            run.current_stage = "deduplicate"
+            await session.commit()
+            publish_status(run_id, "deduplicate", "completed", **stats)
+        except Exception as exc:
+            await session.rollback()
+            run = await session.get(PipelineRun, run_id)
+            run.status = "failed"
+            run.error_detail = {"stage": "deduplicate", "error": str(exc)}
+            await session.commit()
+            publish_status(run_id, "deduplicate", "failed", error=str(exc))
+            raise
+    return run_id
+
+
+async def _run_enrich(run_id: int) -> int:
+    async with _task_session() as session:
+        run = await session.get(PipelineRun, run_id)
+        run.current_stage = "enrich"
+        await session.commit()
+        publish_status(run_id, "enrich", "running")
+        try:
+            stats = await enrich_records(session)
+            detail = dict(run.error_detail or {})
+            detail["enrich"] = stats
+            run.error_detail = detail
+            run.status = "completed"  # final stage
+            run.current_stage = "enrich"
+            await session.commit()
+            publish_status(run_id, "enrich", "completed", **stats)
+        except Exception as exc:
+            await session.rollback()
+            run = await session.get(PipelineRun, run_id)
+            run.status = "failed"
+            run.error_detail = {"stage": "enrich", "error": str(exc)}
+            await session.commit()
+            publish_status(run_id, "enrich", "failed", error=str(exc))
+            raise
+    return run_id
+
+
 @celery.task(name="pipeline.parse")
 def parse_stage(run_id: int) -> int:
     return asyncio.run(_run_parse(run_id))
@@ -157,3 +211,13 @@ def parse_stage(run_id: int) -> int:
 @celery.task(name="pipeline.normalize")
 def normalize_stage(run_id: int) -> int:
     return asyncio.run(_run_normalize(run_id))
+
+
+@celery.task(name="pipeline.deduplicate")
+def deduplicate_stage(run_id: int) -> int:
+    return asyncio.run(_run_deduplicate(run_id))
+
+
+@celery.task(name="pipeline.enrich")
+def enrich_stage(run_id: int) -> int:
+    return asyncio.run(_run_enrich(run_id))

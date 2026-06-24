@@ -65,6 +65,7 @@ class Patient(TimestampMixin, Base):
     # Deduplication (Increment 4)
     cluster_id: Mapped[str | None] = mapped_column(String(64), index=True)
     match_zone: Mapped[str | None] = mapped_column(String(32))
+    summary: Mapped[dict | None] = mapped_column(JSONB)
 
     # Soft delete
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -72,6 +73,18 @@ class Patient(TimestampMixin, Base):
     conditions: Mapped[list[Condition]] = relationship(
         back_populates="patient", cascade="all, delete-orphan"
     )
+
+
+class PatientLink(TimestampMixin, Base):
+    """Deduplication link record — match or possible-match pair with Fellegi-Sunter score."""
+
+    __tablename__ = "patient_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    patient_a_fhir_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    patient_b_fhir_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    score: Mapped[float] = mapped_column(Float, nullable=False)
+    match_zone: Mapped[str] = mapped_column(String(32), nullable=False)
 
 
 class Condition(TimestampMixin, Base):

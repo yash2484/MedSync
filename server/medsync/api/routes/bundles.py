@@ -10,10 +10,10 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, WebSocket, We
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from medsync.config import settings
-from medsync.db.session import get_session
+from medsync.db.session import async_session_factory, get_session
 from medsync.models.database import PipelineRun
 from medsync.models.schemas import BundleUploadResponse, PipelineRunOut
-from medsync.pipeline.tasks import normalize_stage, parse_stage
+from medsync.pipeline.tasks import deduplicate_stage, enrich_stage, normalize_stage, parse_stage
 
 router = APIRouter(prefix="/api/v1/bundles", tags=["bundles"])
 
@@ -38,8 +38,11 @@ async def upload_bundle(
     await session.commit()
     await session.refresh(run)
 
-    # Pipeline chain: parse -> normalize (dedup + enrich appended in Inc 4).
-    chain(parse_stage.s(run.id), normalize_stage.s()).apply_async()
+    # Pipeline chain: parse -> normalize -> deduplicate -> enrich.
+    chain(
+        parse_stage.s(run.id), normalize_stage.s(),
+        deduplicate_stage.s(), enrich_stage.s(),
+    ).apply_async()
     return BundleUploadResponse(pipeline_run_id=run.id, status=run.status)
 
 
@@ -55,6 +58,12 @@ async def get_run(run_id: int, session: AsyncSession = Depends(get_session)) -> 
 async def stream_status(websocket: WebSocket, run_id: int) -> None:
     """Relay Redis pipeline:{run_id} status events to the client over WebSocket."""
     await websocket.accept()
+    async with async_session_factory() as session:
+        run = await session.get(PipelineRun, run_id)
+        if run is not None:
+            await websocket.send_json(
+                {"run_id": run_id, "stage": run.current_stage, "status": run.status}
+            )
     client = aioredis.from_url(settings.redis_url)
     pubsub = client.pubsub()
     await pubsub.subscribe(f"pipeline:{run_id}")
