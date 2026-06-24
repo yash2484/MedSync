@@ -61,3 +61,18 @@ def test_classify_zones():
     assert classify(7.0, upper=6.0, lower=0.0) == "match"
     assert classify(3.0, upper=6.0, lower=0.0) == "possible"
     assert classify(-1.0, upper=6.0, lower=0.0) == "non-match"
+
+
+from medsync.pipeline.deduplicator import assign_clusters
+
+
+def test_assign_clusters_unions_match_pairs():
+    ids = ["a", "b", "c", "d"]
+    clusters = assign_clusters(ids, [("a", "b"), ("b", "c")])
+    assert clusters["a"] == clusters["b"] == clusters["c"]
+    assert clusters["d"] != clusters["a"]  # singleton
+
+
+def test_assign_clusters_deterministic_min_id():
+    clusters = assign_clusters(["b", "a"], [("a", "b")])
+    assert clusters["a"] == clusters["b"] == "a"  # min id is the cluster id

@@ -90,3 +90,23 @@ def classify(score: float, upper: float, lower: float) -> str:
     if score >= lower:
         return "possible"
     return "non-match"
+
+
+def assign_clusters(fhir_ids: list[str], match_pairs: list[tuple[str, str]]) -> dict[str, str]:
+    parent = {fid: fid for fid in fhir_ids}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(x: str, y: str) -> None:
+        rx, ry = find(x), find(y)
+        if rx != ry:
+            parent[max(rx, ry)] = min(rx, ry)
+
+    for x, y in match_pairs:
+        if x in parent and y in parent:
+            union(x, y)
+    return {fid: find(fid) for fid in fhir_ids}
