@@ -171,15 +171,17 @@ async def deduplicate_records(session: AsyncSession) -> dict:
         else:
             p.match_zone = "non-match"
 
-    # Rewrite this run's link audit: clear and re-insert (idempotent).
+    # Rebuild the global link set: dedup runs over all patients and is
+    # deterministic, so clear and regenerate (idempotent end state).
     existing = (await session.execute(select(PatientLink))).scalars().all()
     for link in existing:
         await session.delete(link)
     for a, b, s, z in links:
         session.add(PatientLink(patient_a_fhir_id=a, patient_b_fhir_id=b, score=s, match_zone=z))
 
-    # Invariant (CLAUDE.md §9.2): no patient in two distinct clusters.
-    assert len(set(clusters.values())) <= len(ids)
+    # Invariant (CLAUDE.md §9.2): every matched pair lands in the same cluster,
+    # so no patient can appear in two distinct cluster_ids.
+    assert all(clusters[a] == clusters[b] for a, b in match_pairs)
     await session.commit()
     return {
         "clusters": len(set(clusters.values())),
