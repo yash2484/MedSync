@@ -1,5 +1,8 @@
+import json
 from datetime import date
+from pathlib import Path
 
+from medsync.config import settings
 from medsync.pipeline.deduplicator import (
     PatientFields,
     assign_clusters,
@@ -11,6 +14,9 @@ from medsync.pipeline.deduplicator import (
     soundex_block_key,
     token_overlap,
 )
+from medsync.pipeline.parser import parse_bundle
+
+FIXTURES = Path(__file__).resolve().parent.parent / "data" / "synthea"
 
 
 def test_soundex_block_key_groups_similar_surnames():
@@ -88,3 +94,19 @@ def test_build_blocks_groups_by_soundex_and_year():
     # a and b share Soundex(last)+birth_year -> same block; c separate
     key_ab = next(k for k, v in blocks.items() if any(p.fhir_id == "a" for p in v))
     assert {p.fhir_id for p in blocks[key_ab]} == {"a", "b"}
+
+
+def _fields(bundle):
+    p = parse_bundle(bundle).patients[0]
+    return PatientFields(p.fhir_id, p.family_name, p.given_name, p.birth_date,
+                         p.gender, p.address_line, p.postal_code)
+
+
+def test_same_patient_in_two_bundles_links_not_distinct():
+    """CLINICAL ASSERTION: Shaq across two bundles (surname/given variation, same
+    DOB+address) scores into match/possible — i.e. NOT a non-match."""
+    a = _fields(json.loads((FIXTURES / "fixture_diabetes_patient.json").read_text()))
+    b = _fields(json.loads((FIXTURES / "fixture_shaq_variant.json").read_text()))
+    score = score_pair(a, b, settings.dedup_name_similarity_cutoff)
+    zone = classify(score, settings.dedup_upper_threshold, settings.dedup_lower_threshold)
+    assert zone in {"match", "possible"}
