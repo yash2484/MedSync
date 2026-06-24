@@ -154,4 +154,24 @@ live API — backend depth is the priority.
 
 ---
 
+## Benchmarks (Phase 1)
+
+Measured on dev fixtures; Synthea 1000-patient run pending.
+
+| Metric | Target | Measured |
+|---|---|---|
+| Bundle processing (1000 patients, end-to-end) | < 60 s | measured on dev fixtures; Synthea 1000-patient run pending |
+| Deduplication (1000 patients, after blocking pass) | < 10 s | measured on dev fixtures; Synthea 1000-patient run pending |
+| Normalization coverage (top-200 ICD-10 + top-100 LOINC) | > 95% | measured on dev fixtures; Synthea 1000-patient run pending |
+
+Live verification scripts (require `docker compose up -d`):
+
+```bash
+cd server
+./.venv/Scripts/python.exe scripts/verify_dedup.py    # deduplication: Shaq + variant fixture
+./.venv/Scripts/python.exe scripts/verify_enrich.py   # enrichment: patient summary + timeline
+```
+
+---
+
 *Built with synthetic data for portfolio and educational purposes.*
